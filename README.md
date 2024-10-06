@@ -1,114 +1,156 @@
-# HDF5 File Explorer
+# HDF5/H5 File Explorer
 
 ## Overview
 
-`h5reader.py` is a simple Python script designed for exploring and interacting with HDF5 files. It offers basic file navigation, dataset inspection, and visualization capabilities, either in a command-line or interactive mode. It supports several useful commands such as listing contents, changing directories, printing dataset data, checking dataset sizes, and plotting data.
+`h5reader` is a Python tool designed to explore and interact with **HDF5 (.hdf5)** and **H5 (.h5)** files. It provides both command-line and interactive modes, allowing you to navigate the file structure, inspect datasets, and visualize data. The interactive mode offers Unix shell-like commands for intuitive file exploration.
 
 ## Features
 
-- **Interactive Mode**: Allows users to explore an HDF5 file interactively with commands like `ls`, `cd`, `cat`, `size`, and `plot`.
-- **Tab Completion**: Provides tab-completion for paths within the HDF5 file.
-- **Dataset Visualization**: Supports plotting of 1D, 2D, and 3D datasets using `matplotlib`.
-- **Command Line Options**: Supports various command-line options for non-interactive exploration.
+- **Interactive Shell**: Navigate HDF5/H5 files using commands like `ls`, `cd`, `cat`, `size`, and `plot`.
+- **Tab Completion**: Autocomplete paths within HDF5/H5 files for easier navigation.
+- **Data Visualization**: Plot 1D, 2D, and 3D datasets using `matplotlib`.
+- **Command-Line Options**: Perform non-interactive exploration with a variety of command-line options.
+- **Tree View**: Display the entire structure of the HDF5/H5 file.
+- **Cross-Platform Compatibility**: Works on Unix-like systems. **Note**: Windows compatibility has **not been tested**, and the script may not work at all on Windows.
 
 ## Installation
 
-To use this script, ensure you have the following Python libraries installed:
+### Prerequisites
 
-```bash
-pip install h5py matplotlib tqdm readline
-```
+Ensure you have **Python 3.7** or higher installed.
 
-or
+### Installing via `requirements.txt`
+
+You can install all the necessary packages using the provided `requirements.txt` file:
 
 ```bash
 pip install -r requirements.txt
 ```
 
+This will install the following dependencies:
+- `h5py`
+- `matplotlib`
+- `tqdm`
+- `readline` (for Unix-like systems)
+- `pyreadline3` (for Windows systems, though Windows support has not been tested)
+
+### Installing `h5reader`
+
+You can install `h5reader` as a command-line tool using the `setup.py` script:
+
+```bash
+python setup.py install
+```
+
+This will make the `h5reader` command available globally, allowing you to run it directly from any terminal.
+
 ## Usage
 
 ### Command-Line Mode
 
-You can run the script directly from the command line with various options:
+Run `h5reader` directly from the command line with various options:
 
 ```bash
-python h5reader.py <path_to_hdf5_file> [options]
+h5reader <path_to_hdf5_or_h5_file> [options]
 ```
-
-or 
-
-```bash
-h5reader <path_to_hdf5_file> [options]
-```
-
-where `<path_to_hdf5_file>` is the path to the HDF5 file you want to explore.
-This second command is available if you have installed the script by running `python setup.py install`.
 
 **Options:**
 
-- `-s`, `--size`: Print the size of each dataset.
+- `-t`, `--tree`: Display the entire structure of the HDF5/H5 file.
+- `-s`, `--size`: Print the shape of each dataset.
 - `-d`, `--data`: Print the data of each dataset.
 - `-i`, `--interactive`: Start the interactive mode.
+- `-v`, `--verbose`: Increase output verbosity.
 
-### Example Command-Line Usage
+#### Example Commands
 
-To print the size of all datasets in the file:
+To display the structure of an HDF5 or H5 file:
 
 ```bash
-python h5reader.py myfile.h5 -s
+h5reader myfile.h5 -t
+```
+
+To print the sizes of all datasets:
+
+```bash
+h5reader myfile.hdf5 -s
 ```
 
 To print the data of all datasets:
 
 ```bash
-python h5reader.py myfile.h5 -d
+h5reader myfile.h5 -d
 ```
 
 ### Interactive Mode
 
-Interactive mode allows you to explore the HDF5 file structure using commands similar to a shell. To enter interactive mode, use:
+Launch the interactive shell to explore the file:
 
 ```bash
-python h5reader.py myfile.h5 -i
+h5reader myfile.h5 -i
 ```
 
-Once inside the interactive mode, you can use the following commands:
+#### Available Commands
 
 - `ls`: List the contents of the current directory.
-- `cd <directory>`: Change to a specific directory.
-- `cat <dataset>`: Print the data of the specified dataset.
-- `size <dataset>`: Print the size of the specified dataset.
-- `plot <dataset>`: Plot the data of the specified dataset. 1D, 2D, and 3D datasets are supported (2D datasets will be displayed as images, 3D datasets as animations).
-- `tree`: Print the directory structure of the HDF5 file.
+- `cd <directory>`: Change directory.
+- `cat <dataset>`: Print the data of a dataset.
+- `size <dataset>`: Print the shape of a dataset.
+- `plot <dataset>`: Plot the data of a dataset (supports 1D, 2D, and 3D).
+- `tree`: Display the directory structure.
 - `help`: Show a list of available commands.
-- `exit`, `quit`, `q`: Exit the interactive mode.
+- `exit`, `quit`, `q`: Exit interactive mode.
 
-**Exit Interactive Mode**: Use `exit`, `quit`, or `q` to leave the interactive mode.
+**Tab Completion**: Use the `Tab` key to autocomplete paths in the HDF5/H5 file.
 
-### Example Interactive Usage
+#### Example Interactive Session
 
 ```bash
-$ python h5reader.py myfile.h5 -i
+$ h5reader myfile.h5 -i
 / % ls
 /dataset1
+/group1
+/ % cd group1
+/group1 % ls
 /dataset2
-/ % size dataset1
-(100, 100)
-/ % plot dataset1
+/group1 % size dataset2
+(100, 200)
+/group1 % plot dataset2
 ```
+
+### Using `setup.py`
+
+The `setup.py` script simplifies the installation of `h5reader` as a command-line tool. It handles dependency management and creates a console entry point for easy usage.
+
+#### Setup Instructions
+
+1. Clone the repository or download the files.
+2. Run the following command to install `h5reader`:
+
+   ```bash
+   python setup.py install
+   ```
+
+After installation, you can use the `h5reader` command directly from your terminal.
 
 ## Known Issues & Limitations
 
-- **3D Datasets**: When plotting 3D datasets, the script generates an animation (GIF-like) using `matplotlib`. It might take some time to generate the animation for large datasets.
-- **Tab Completion**: The tab completion feature may not work on all terminals, especially on Windows.
+- **Windows Compatibility**: The script has **not been tested on Windows**, and it may not work at all on Windows systems.
+- **3D Dataset Visualization**: Large datasets may slow down the generation of animations.
+- **Tab Completion on Windows**: May not work on all terminals; installing `pyreadline3` may help, but it is untested.
 
 ## License
 
-This script is licensed under the MIT License. Feel free to use, modify, and distribute it.
-If you have any questions or suggestions, please feel free to contact me.
-I would especially appreciate any feedback or contributions to improve this script!
-Feel free to create an issue or submit a pull request on GitHub.
+This project is licensed under the MIT License.
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests on GitHub.
+
+## Contact
+
+For questions or suggestions, reach out to the author.
 
 ---
 
-Enjoy exploring your HDF5 files with `h5reader.py`!
+Enjoy exploring your HDF5/H5 files with `h5reader`!
