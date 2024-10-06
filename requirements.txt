@@ -1,0 +1,4 @@
+h5py
+matplotlib
+tqdm
+readline # pyreadline3 on Windows

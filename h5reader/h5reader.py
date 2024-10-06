@@ -39,6 +39,7 @@ class HDF5PathCompleter:
         except KeyError:
             return None
 
+# ls command to list the contents of a directory
 def ls(f, path):
     try:
         for key in f[path].keys():
@@ -46,6 +47,7 @@ def ls(f, path):
     except KeyError:
         print(f"No such directory: {path}")
 
+# cd command to change directories
 def cd(f, current_path, new_path):
     # Normalize the path with os.path.join and handle relative paths
     if new_path == '.':
@@ -68,6 +70,7 @@ def cd(f, current_path, new_path):
             print(f"No such directory: {new_path}")
             return current_path
 
+# cat command to print the data of a dataset
 def cat(f, path):
     try:
         print(f[path][:])
@@ -76,6 +79,7 @@ def cat(f, path):
     except Exception as e:
         print(e)
 
+# size command to print the size of a dataset
 def size(f, path):
     try:
         print(f[path].shape)
@@ -84,6 +88,7 @@ def size(f, path):
     except Exception as e:
         print(e)
 
+# plot command to plot the data of a dataset
 def plot(f, path):
     try:
         s = f[path].shape
@@ -103,7 +108,44 @@ def plot(f, path):
     except KeyError:
         print(f"No such dataset: {path}")
 
-def interactiveLoop(f):
+# prints the complete layout of the hdf5 file
+def tree(f, path='/', indent='', last=True, printOpt=None):
+    try:
+        keys = list(f[path].keys())
+        for i, key in enumerate(keys):
+            is_last = (i == len(keys) - 1)
+            if is_last:
+                connector = '└── '
+            else:
+                connector = '├── '
+
+            if printOpt and printOpt is not cat:
+                print(indent + connector + key, end=' ')
+            else:
+                print(indent + connector + key)
+
+            if isinstance(f[path][key], h5py.Group):
+                new_indent = indent + ('    ' if is_last else '│   ')
+                tree(f, f[path][key].name, new_indent, is_last, printOpt)
+            elif printOpt:
+                printOpt(f, f[path][key].name)
+    except KeyError:
+        print(f"No such directory: {path}")
+
+# Help function to display available commands
+def help():
+    print('Use `exit`, `quit`, or `q` to quit the interactive mode')
+    print('Use `ls` to list the contents of the current directory')
+    print('Use `cd <directory>` to change directories')
+    print('Use `cat <dataset>` to print the data of a dataset')
+    print('Use `size <dataset>` to print the size of a dataset')
+    print('Use `plot <dataset>` to plot the data of a dataset')
+    print('Use `tree` to print the complete layout of the HDF5 file')
+    print('Use `help` to print this message again')
+    print('Press tab to autocomplete paths')
+
+# Interactive loop for the user to explore the HDF5 file
+def interactiveLoop(f, verbose=False):
     path = '/'
     completer = HDF5PathCompleter(f, path)
 
@@ -111,12 +153,9 @@ def interactiveLoop(f):
     readline.set_completer(completer.complete)
     readline.parse_and_bind("tab: complete")
 
-    print('Use `exit`, `quit`, or `q` to quit the interactive mode')
-    print('Use `ls` to list the contents of the current directory')
-    print('Use `cd <directory>` to change directories')
-    print('Use `cat <dataset>` to print the data of a dataset')
-    print('Use `size <dataset>` to print the size of a dataset')
-    print('Use `plot <dataset>` to plot the data of a dataset')
+    if verbose:
+        help()
+
     while True:
         try:
             command = input(f'{path} % ').strip().split()
@@ -149,6 +188,10 @@ def interactiveLoop(f):
                     plot(f, os.path.normpath(os.path.join(path, command[1])))
                 else:
                     print("Usage: plot <dataset>")
+            elif cmd == 'tree':
+                tree(f, path)
+            elif cmd == 'help':
+                help()
             else:
                 print(f"Unknown command: {cmd}")
         except Exception as e:
@@ -157,25 +200,29 @@ def interactiveLoop(f):
 def main():
     parser = argparse.ArgumentParser(description='HDF5 File Explorer')
     parser.add_argument('path', type=str, help='Path to the HDF5 file')
+    parser.add_argument('-t', '--tree', help='Print the complete layout of the HDF5 file', action='store_true')
     parser.add_argument('-s', '--size', help='Print the size of each dataset', action='store_true')
     parser.add_argument('-d', '--data', help='Print the data of each dataset', action='store_true')
     parser.add_argument('-i', '--interactive', help='Interactive mode', action='store_true')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
     path = args.path
 
     with h5py.File(path, 'r') as f:
-        if args.interactive:
-            interactiveLoop(f)
-        else:
-            for key in f.keys():
-                if args.size:
-                    print(f'{key}: {f[key].shape}')
-                else:
-                    print(f[key].name)
+        if args.tree or args.size or args.data or not args.interactive:
+            if args.size:
+                tree(f, printOpt=size)
+            elif args.data:
+                tree(f, printOpt=cat)
+            else:
+                tree(f)
 
-                if args.data:
-                    print(f[key][:])
+        if (args.tree or args.size or args.data) and args.interactive:
+            print('\nEntering interactive mode...')
+        
+        if args.interactive:
+            interactiveLoop(f, args.verbose)
 
 if __name__ == '__main__':
     main()
